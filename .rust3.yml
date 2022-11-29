@@ -1,12 +1,11 @@
-on:
-       
+      
   push:
     branches:
     - main
   pull_request:
     branches:
     - main
-jobs:
+  jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -28,4 +27,4 @@ jobs:
     - name: Push
       run: dotnet nuget push NuGet.Workflow.${VERSION}.nupkg --source https://nuget.pkg.github.com/acraven/index.json --api-key ${GITHUB_TOKEN}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}:
