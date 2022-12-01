@@ -1,0 +1,48 @@
+
+name: CI workflow
+
+on:
+  push:
+    branches: ['push']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  :
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: install unpack
+        id: meta
+        uses: install/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        run : choco install upack
+
+      - name: updated content and version of Betsson.RootCA/7.0.0
+        uses: version/update-content-@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        run : unpack --version 
+        - name: created a new Betsson.RootCA-8.0.0.upack file
+        uses: version/update-content-@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        run : upack pack Betsson.RootCA-8.0.0 --metadata=upack.json
+
+        
+         - name:  pushed new package version to feed
+        uses: version/update-content-@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        run : upack push .\Betsson.RootCA-8.0.0.upack https://nuget-techsson.bde.local/upack/Techsson.UPack --user=api:API-KEY-LOGIN-TO-PROGET-ADMIN-TO-GET-KEY
+
+
+        
