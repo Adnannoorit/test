@@ -1,0 +1,40 @@
+name: Publish Package
+
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
+    paths:
+      - 'src/Project/**'
+
+env:
+  DOTNET_VERSION: '3.1.x'
+  PACKAGE_MAJOR_VERSION: 0
+  PACKAGE_MINOR_VERSION: 0
+  REPOSITORY_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Update NuGet Package
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install dotnet SDK ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Build & package project
+        run: |
+          PACKAGE_VERSION=$PACKAGE_MAJOR_VERSION.$PACKAGE_MINOR_VERSION.$GITHUB_RUN_NUMBER
+          cd src/Project
+          sed -i s#GITHUB_REPOSITORY#${{ github.repository }}#g Project.csproj
+          dotnet pack -c Release -o out -p:PackageVersion=$PACKAGE_VERSION
+
+      - name: Push to GitHub package registry
+        run: dotnet nuget push ./src/Project/out/*.nupkg --source ${{ env.REPOSITORY_URL }} --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate --no-symbols true
