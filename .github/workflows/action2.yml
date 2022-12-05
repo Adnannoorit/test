@@ -1,34 +1,38 @@
-name: CI
-#on:
-#  push:
-#    branches:
- #     - master
-#  pull_request:
-#    branches:
-#      - master
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: installed upack
-        run :choco install upack
-      - name: updated content and version of Betsson.RootCA/7.0.0
-        run: null
-      - name: created a new Betsson.RootCA-8.0.0.upack file 
-        run :upack pack
-          Betsson.RootCA-8.0.0 --metadata=upack.json
-      uses: nugetfeed/nugetfeed-github-action@master
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  _TOKEN: ${{ secrets.SONAR_TOKEN }} - 
-  name:pushed new package version to feed
-  run: upack push .\Betsson.RootCA-8.0.0.upack
-    https://nuget-tec.local/upack/Techsson.UPack
-    --user=api:API-KEY-LOGIN-TO-PROGET-ADMIN-TO-GET-KEY
+---
+name: .NET Core
+on: null
+push: null
+branches:
+  - master
+pull_request:
+  branches:
+    - master
+jobs: null
+build: null
+runs-on: ubuntu-latest
+steps:
+  - name: Checkout
+    uses: actions/checkout@v2
+  - name: Setup .NET Core
+    uses: actions/setup-dotnet@v1.5.0
+    with:
+      dotnet-version: 3.1.301
+      source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+    env:
+      NUGET_AUTH_TOKEN: "%NUGET_AUTH_TOKEN%"
+  - name: Install dependencies
+    run: dotnet restore
+  - name: Build
+    run: dotnet build --configuration Release --no-restore
+  - name: Test
+    run: dotnet test --no-restore --verbosity normal
+  - name: Pack
+    run: dotnet pack --no-build --configuration Release
+      MintPlayer.SeasonChecker/MintPlayer.SeasonChecker.csproj --output .
+  - name: PushNuget
+    run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json
+      --api-key ${{secrets.PUBLISH_TO_NUGET_ORG}} --skip-duplicate
+  - name: PushGithub
+    run: dotnet nuget push *.nupkg --no-symbols --skip-duplicate
+    env:
+      NUGET_AUTH_TOKEN: ${{ github.token }}
