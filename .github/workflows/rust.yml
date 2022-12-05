@@ -1,9 +1,6 @@
 ---
 name: .NET Core
-on: null
-push: null
-branches:
-  - master
+on:push
 pull_request:
   branches:
     - master
